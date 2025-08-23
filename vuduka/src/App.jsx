@@ -31,6 +31,23 @@ function App() {
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const orderButtonRef = useRef(null);
   const cartButtonRef = useRef(null);
+  const bookingFormRef = useRef(null);
+
+  // Scroll to booking form with highlight effect
+  const scrollToBookingForm = () => {
+    if (bookingFormRef.current) {
+      bookingFormRef.current.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      });
+      
+      // Add a slight highlight effect
+      bookingFormRef.current.classList.add('ring-2', 'ring-blue-500', 'ring-opacity-50');
+      setTimeout(() => {
+        bookingFormRef.current.classList.remove('ring-2', 'ring-blue-500', 'ring-opacity-50');
+      }, 1500);
+    }
+  };
 
   // Placeholder handler functions
   const handlePaymentSubmit = (paymentData) => {
@@ -141,24 +158,26 @@ function App() {
       />
 
       <main className="mt-24 md:mt-28 flex-1 w-full max-w-6xl mx-auto px-4 py-8">
-        <HeroSection onBookNowClick={() => document.getElementById('book').scrollIntoView({ behavior: 'smooth' })} />
+        <HeroSection onBookNowClick={scrollToBookingForm} />
 
-        <BookingForm 
-          step={step}
-          order={order}
-          pickupLocation={pickupLocation}
-          dropoffLocation={dropoffLocation}
-          rideType={rideType}
-          pickupSuggestions={pickupSuggestions}
-          dropoffSuggestions={dropoffSuggestions}
-          onOrderSubmit={handleOrderSubmit}
-          onReset={handleReset}
-          onAddToCart={handleAddToCart}
-          onLocationInput={handleLocationInput}
-          onSuggestionClick={handleSuggestionClick}
-          onRideTypeChange={setRideType}
-          orderButtonRef={orderButtonRef}
-        />
+        <div ref={bookingFormRef}>
+          <BookingForm 
+            step={step}
+            order={order}
+            pickupLocation={pickupLocation}
+            dropoffLocation={dropoffLocation}
+            rideType={rideType}
+            pickupSuggestions={pickupSuggestions}
+            dropoffSuggestions={dropoffSuggestions}
+            onOrderSubmit={handleOrderSubmit}
+            onReset={handleReset}
+            onAddToCart={handleAddToCart}
+            onLocationInput={handleLocationInput}
+            onSuggestionClick={handleSuggestionClick}
+            onRideTypeChange={setRideType}
+            orderButtonRef={orderButtonRef}
+          />
+        </div>
 
         <ServicesSection />
         <WhyChooseUsSection />
