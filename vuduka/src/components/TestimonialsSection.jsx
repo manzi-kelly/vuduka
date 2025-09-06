@@ -15,7 +15,7 @@ function TestimonialsSection() {
               <div className="flex items-center mb-6">
                 <div className="bg-gray-200 rounded-xl w-16 h-16 mr-4" />
                 <div>
-                  <h4 className="font-bold">Sarah Johnson</h4>
+                  <h4 className="font-bold">Manzi Kelly</h4>
                   <div className="flex text-yellow-400">
                     <FaStar />
                     <FaStar />
@@ -34,7 +34,7 @@ function TestimonialsSection() {
               <div className="flex items-center mb-6">
                 <div className="bg-gray-200 rounded-xl w-16 h-16 mr-4" />
                 <div>
-                  <h4 className="font-bold">Michael Chen</h4>
+                  <h4 className="font-bold">Ishimwe Prience</h4>
                   <div className="flex text-yellow-400">
                     <FaStar />
                     <FaStar />
@@ -53,7 +53,7 @@ function TestimonialsSection() {
               <div className="flex items-center mb-6">
                 <div className="bg-gray-200 rounded-xl w-16 h-16 mr-4" />
                 <div>
-                  <h4 className="font-bold">Emma Rodriguez</h4>
+                  <h4 className="font-bold">Emmanuel Nkurunziza</h4>
                   <div className="flex text-yellow-400">
                     <FaStar />
                     <FaStar />
