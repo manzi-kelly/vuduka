@@ -2,202 +2,162 @@ import React, { useState } from 'react';
 import { 
   FaMapMarkerAlt, FaCar, FaStar, FaRoad, FaUsers, FaSuitcase, FaShieldAlt, 
   FaCheckCircle, FaClock, FaPhone, FaArrowLeft, FaUser, FaCalendarAlt,
-  FaChevronLeft, FaChevronRight, FaSearch, FaChevronDown
+  FaChevronLeft, FaChevronRight
 } from 'react-icons/fa';
 import PaymentForm from './PaymentForm';
 
-// Rwanda administrative data
-const rwandaData = {
-  provinces: [
-    {
-      name: "Eastern Province",
-      districts: [
-        {
-          name: "Bugesera",
-          sectors: ["Gashora", "Juru", "Kamabuye", "Mareba", "Mayange", "Musenyi", "Mwogo", "Ngeruka", "Ntarama", "Nyamata", "Nyarugenge", "Rilima", "Ruhuha", "Rweru", "Shyara"]
-        },
-        {
-          name: "Gatsibo",
-          sectors: ["Gasange", "Gatsibo", "Gitoki", "Kabarore", "Kageyo", "Kiramuruzi", "Kiziguro", "Muhura", "Murambi", "Ngarama", "Nyagihanga", "Remera", "Rugarama", "Rwimbogo"]
-        },
-        {
-          name: "Kayonza",
-          sectors: ["Gahini", "Kabare", "Kabarondo", "Mukarange", "Murama", "Murundi", "Mwiri", "Ndego", "Nyamirama", "Rukara", "Ruramira", "Rwinkwavu"]
-        },
-        {
-          name: "Kirehe",
-          sectors: ["Gahara", "Gatore", "Kigarama", "Kigina", "Kirehe", "Mahama", "Mpanga", "Musaza", "Mushikiri", "Nasho", "Nyamugari", "Nyarubuye", "Rwabarimba", "Rwanyamuhanga"]
-        },
-        {
-          name: "Ngoma",
-          sectors: ["Gashanda", "Jarama", "Karembo", "Kaziba", "Kibungo", "Mugesera", "Murama", "Mutenderi", "Remera", "Rukira", "Rukumberu", "Rurenge", "Sake", "Zaza"]
-        },
-        {
-          name: "Nyagatare",
-          sectors: ["Gatebe", "Karama", "Karangazi", "Katabagemu", "Kiyombe", "Matimba", "Mimuri", "Mukama", "Musheri", "Nyagatare", "Rukomo", "Rwempasha", "Rwimiyaga", "Tabagwe"]
-        },
-        {
-          name: "Rwamagana",
-          sectors: ["Fumbwe", "Gahengeri", "Gishali", "Karenge", "Kigabiro", "Muhazi", "Munyaga", "Munyiginya", "Musha", "Muyumbu", "Mwulire", "Nyarubuye", "Rukara", "Rwamagana"]
-        }
-      ]
-    },
-    {
-      name: "Kigali",
-      districts: [
-        {
-          name: "Gasabo",
-          sectors: ["Bumbogo", "Gatsata", "Gikomero", "Gisozi", "Jabana", "Jali", "Kacyiru", "Kimihurura", "Kimironko", "Kinyinya", "Ndera", "Nduba", "Remera", "Rusororo", "Rutunga"]
-        },
-        {
-          name: "Kicukiro",
-          sectors: ["Gahanga", "Gatenga", "Gikondo", "Kagarama", "Kanombe", "Kicukiro", "Kigarama", "Masaka", "Niboye", "Nyarugunga"]
-        },
-        {
-          name: "Nyarugenge",
-          sectors: ["Gitega", "Kanyinya", "Kigali", "Kimisagara", "Mageragere", "Muhima", "Nyakabanda", "Nyamirambo", "Nyarugenge", "Rwezamenyo"]
-        }
-      ]
-    },
-    {
-      name: "Northern Province",
-      districts: [
-        {
-          name: "Burera",
-          sectors: ["Bungwe", "Butaro", "Cyanika", "Cyeru", "Gahunga", "Gatebe", "Gitovu", "Kagogo", "Kinoni", "Kinyababa", "Kivuye", "Nemba", "Rugarama", "Rugengabari", "Ruhunde", "Rusarabuye", "Rwerere"]
-        },
-        {
-          name: "Gakenke",
-          sectors: ["Busengo", "Coko", "Cyabingo", "Gakenke", "Gashenyi", "Janja", "Kamubuga", "Karambo", "Kivuruga", "Mataba", "Minazi", "Mugunga", "Muhondo", "Muyongwe", "Muzo", "Nemba", "Ruli", "Rusasa", "Rushashi"]
-        },
-        {
-          name: "Gicumbi",
-          sectors: ["Bukure", "Bwisige", "Byumba", "Cyumba", "Giti", "Kageyo", "Kaniga", "Manyagiro", "Miyove", "Mukarange", "Muko", "Mutete", "Nyamiyaga", "Nyankenke", "Rubaya", "Rukomo", "Rushaki", "Rutare", "Ruvune", "Rwamiko", "Shangasha"]
-        },
-        {
-          name: "Musanze",
-          sectors: ["Busogo", "Cyuve", "Gacaca", "Gashaki", "Gataraga", "Kimonyi", "Kinigi", "Muhoza", "Muko", "Musanze", "Nkotsi", "Nyange", "Remera", "Rwaza", "Shingiro"]
-        },
-        {
-          name: "Rulindo",
-          sectors: ["Base", "Burega", "Bushoki", "Buyoga", "Cyinzuzi", "Cyungo", "Kinihira", "Kisaro", "Masoro", "Mbogo", "Murambi", "Ngoma", "Ntarabana", "Rukozo", "Rusiga", "Shyorongi", "Tumba"]
-        }
-      ]
-    },
-    {
-      name: "Southern Province",
-      districts: [
-        {
-          name: "Gisagara",
-          sectors: ["Gikonko", "Gishubi", "Kansi", "Kibirizi", "Kigembe", "Mamba", "Muganza", "Mugombwa", "Mukindo", "Musha", "Ndora", "Nyanza", "Save"]
-        },
-        {
-          name: "Huye",
-          sectors: ["Gishamvu", "Huye", "Karama", "Kigoma", "Kinazi", "Maraba", "Mbazi", "Mukura", "Ngoma", "Ruhashya", "Rusatira", "Rwaniro", "Simbi", "Tumba"]
-        },
-        {
-          name: "Kamonyi",
-          sectors: ["Gacurabwenge", "Karama", "Kayenzi", "Kayumbu", "Mugina", "Musambira", "Ngamba", "Rukoma", "Runyinya", "Rwabutazi", "Shyogwe"]
-        },
-        {
-          name: "Muhanga",
-          sectors: ["Cyeza", "Kabacuzi", "Kibangu", "Kiyumba", "Muhanga", "Mushishiro", "Nyabinoni", "Nyamabuye", "Nyarusange", "Rongi", "Rugendabari", "Shyanda"]
-        },
-        {
-          name: "Nyamagabe",
-          sectors: ["Buruhukiro", "Cyanika", "Gatare", "Kaduha", "Kamegeri", "Kibirizi", "Kibumbwe", "Kitabi", "Mbazi", "Mugano", "Musange", "Musebeya", "Mushubi", "Nkomane", "Gasaka", "Tare"]
-        },
-        {
-          name: "Nyanza",
-          sectors: ["Busasamana", "Busoro", "Cyabakamyi", "Kibilizi", "Kigoma", "Mukingo", "Muyira", "Ntyazo", "Nyagisozi", "Rwabicuma", "Rwankuba"]
-        },
-        {
-          name: "Nyaruguru",
-          sectors: ["Busanze", "Cyahinda", "Kibeho", "Mata", "Muganza", "Munini", "Ngera", "Ngoma", "Nyabimata", "Nyagisozi", "Ruheru", "Ruramba", "Rusenge"]
-        },
-        {
-          name: "Ruhango",
-          sectors: ["Bweramana", "Byimana", "Kabagali", "Kinazi", "Kinihira", "Mbuye", "Mpanda", "Mushishiro", "Ntongwe", "Ruhango", "Rusarasi", "Rwabutazi", "Shyogwe"]
-        }
-      ]
-    },
-    {
-      name: "Western Province",
-      districts: [
-        {
-          name: "Karongi",
-          sectors: ["Bwishyura", "Gashari", "Gishyita", "Gitesi", "Mubuga", "Murambi", "Murundi", "Mutuntu", "Rubengera", "Rugabano", "Ruganda", "Rwankuba", "Twumba"]
-        },
-        {
-          name: "Ngororero",
-          sectors: ["Bwira", "Gatumba", "Hindiro", "Kageyo", "Kavumu", "Matyazo", "Muhanda", "Muhororo", "Ndaro", "Ngororero", "Nyange", "Sovu", "Bigogwe"]
-        },
-        {
-          name: "Nyabihu",
-          sectors: ["Bigogwe", "Jenda", "Jomba", "Kabatwa", "Karago", "Kintobo", "Mukamira", "Muringa", "Rambura", "Rugera", "Rurembo", "Shyira"]
-        },
-        {
-          name: "Nyamasheke",
-          sectors: ["Bushekeri", "Bushenge", "Cyato", "Gihombo", "Kagano", "Kanjongo", "Karambi", "Karengera", "Kirimbi", "Macuba", "Mahembe", "Nyabitekeri", "Rangiro", "Ruharambuga", "Shangi", "Zihare"]
-        },
-        {
-          name: "Rubavu",
-          sectors: ["Bugeshi", "Busasamana", "Cyanzarwe", "Gisenyi", "Kanama", "Kanzenze", "Mudende", "Nyakiriba", "Nyamyumba", "Rubavu", "Rugerero"]
-        },
-        {
-          name: "Rusizi",
-          sectors: ["Bugarama", "Butare", "Bweyeye", "Gashonga", "Giheke", "Gihundwe", "Gikundamvura", "Gitambi", "Kamembe", "Muganza", "Mururu", "Nkanka", "Nkombo", "Nkungu", "Nyakabuye", "Nyakarenzo", "Nzahaha", "Rwimbogo"]
-        },
-        {
-          name: "Rutsiro",
-          sectors: ["Boneza", "Gihango", "Kigeyo", "Kivumu", "Manihira", "Mukura", "Murunda", "Musasa", "Mushonyi", "Mushubati", "Nyabirasi", "Ruhango", "Rusebeya", "Rwashyambere"]
-        }
-      ]
-    }
-  ]
-};
-
-// Flattened arrays for easier access
-const allDistricts = rwandaData.provinces.flatMap(province => 
-  province.districts.map(district => district.name)
-);
-
-const allSectors = rwandaData.provinces.flatMap(province =>
-  province.districts.flatMap(district => district.sectors)
-);
-
 // Calendar Component (unchanged)
 const Calendar = ({ selectedDate, onDateSelect, scheduledTime, onTimeChange }) => {
-  // ... (calendar implementation remains the same)
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const getDaysInMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    return new Date(year, month + 1, 0).getDate();
+  };
+  const getFirstDayOfMonth = (date) => {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    return new Date(year, month, 1).getDay();
+  };
+  const prevMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
+  };
+  const nextMonth = () => {
+    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
+  };
+  const isToday = (date) => {
+    const today = new Date();
+    return (
+      date.getDate() === today.getDate() &&
+      date.getMonth() === today.getMonth() &&
+      date.getFullYear() === today.getFullYear()
+    );
+  };
+  const isSelected = (date) => {
+    if (!selectedDate) return false;
+    return (
+      date.getDate() === selectedDate.getDate() &&
+      date.getMonth() === selectedDate.getMonth() &&
+      date.getFullYear() === selectedDate.getFullYear()
+    );
+  };
+  const generateCalendarDays = () => {
+    const daysInMonth = getDaysInMonth(currentMonth);
+    const firstDay = getFirstDayOfMonth(currentMonth);
+    const days = [];
+    for (let i = 0; i < firstDay; i++) {
+      days.push(<div key={`empty-${i}`} className="h-10"></div>);
+    }
+    for (let day = 1; day <= daysInMonth; day++) {
+      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+      const today = isToday(date);
+      const selected = isSelected(date);
+      days.push(
+        <div
+          key={`day-${day}`}
+          className={`h-10 flex items-center justify-center rounded-full cursor-pointer transition-colors
+            ${today ? 'bg-blue-100 text-blue-600 font-semibold' : ''}
+            ${selected ? 'bg-blue-600 text-white font-semibold' : ''}
+            ${!today && !selected ? 'hover:bg-gray-100' : ''}
+            ${date < new Date().setHours(0, 0, 0, 0) ? 'text-gray-300 cursor-not-allowed' : ''}
+          `}
+          onClick={() => {
+            if (date >= new Date().setHours(0, 0, 0, 0)) {
+              onDateSelect(date);
+            }
+          }}
+        >
+          {day}
+        </div>
+      );
+    }
+    return days;
+  };
+  const generateTimeSlots = () => {
+    const times = [];
+    for (let hour = 5; hour <= 23; hour++) {
+      for (let minute = 0; minute < 60; minute += 30) {
+        const timeValue = `${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`;
+        const displayTime = new Date(`2000-01-01T${timeValue}`).toLocaleTimeString([], { 
+          hour: '2-digit', 
+          minute: '2-digit',
+          hour12: true 
+        });
+        times.push(
+          <option key={timeValue} value={timeValue}>
+            {displayTime}
+          </option>
+        );
+      }
+    }
+    return times;
+  };
+
+  const monthName = currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-4">
+      <div className="flex items-center justify-between mb-4">
+        <button 
+          onClick={prevMonth}
+          className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+        >
+          <FaChevronLeft className="text-gray-600" />
+        </button>
+        <h3 className="font-semibold text-gray-800">{monthName}</h3>
+        <button 
+          onClick={nextMonth}
+          className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+        >
+          <FaChevronRight className="text-gray-600" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-7 gap-2 mb-2">
+        {dayNames.map(day => (
+          <div key={day} className="text-center text-xs font-medium text-gray-500 py-1">
+            {day}
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-7 gap-2">
+        {generateCalendarDays()}
+      </div>
+
+      {selectedDate && (
+        <div className="mt-6 pt-4 border-t border-gray-100">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Select Time</label>
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+              <FaClock className="text-gray-400" />
+            </div>
+            <select
+              value={scheduledTime}
+              onChange={(e) => onTimeChange(e.target.value)}
+              className="pl-10 h-12 border-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white rounded-lg text-base w-full"
+            >
+              <option value="">Select a time</option>
+              {generateTimeSlots()}
+            </select>
+          </div>
+        </div>
+      )}
+    </div>
+  );
 };
 
 function BookingForm() {
   const [step, setStep] = useState(1);
-  const [pickupProvince, setPickupProvince] = useState('');
-  const [pickupDistrict, setPickupDistrict] = useState('');
-  const [pickupSector, setPickupSector] = useState('');
-  const [dropoffProvince, setDropoffProvince] = useState('');
-  const [dropoffDistrict, setDropoffDistrict] = useState('');
-  const [dropoffSector, setDropoffSector] = useState('');
+  const [pickupLocation, setPickupLocation] = useState('');
+  const [dropoffLocation, setDropoffLocation] = useState('');
   const [selectedRide, setSelectedRide] = useState(null);
   const [order, setOrder] = useState(null);
   const [errors, setErrors] = useState({});
   const [rideTimeOption, setRideTimeOption] = useState('now');
   const [scheduledTime, setScheduledTime] = useState('');
   const [scheduledDate, setScheduledDate] = useState(null);
-  const [showPickupDropdown, setShowPickupDropdown] = useState(false);
-  const [showDropoffDropdown, setShowDropoffDropdown] = useState(false);
-  const [pickupSearch, setPickupSearch] = useState('');
-  const [dropoffSearch, setDropoffSearch] = useState('');
-
-  // Filter sectors based on search input
-  const filteredPickupSectors = allSectors.filter(sector =>
-    sector.toLowerCase().includes(pickupSearch.toLowerCase())
-  );
-  
-  const filteredDropoffSectors = allSectors.filter(sector =>
-    sector.toLowerCase().includes(dropoffSearch.toLowerCase())
-  );
 
   const rideTypes = [
     { 
@@ -243,11 +203,11 @@ function BookingForm() {
 
   const validateForm = () => {
     const newErrors = {};
-    if (!pickupSector.trim()) {
-      newErrors.pickupSector = 'Pickup sector is required';
+    if (!pickupLocation.trim()) {
+      newErrors.pickupLocation = 'Pickup location is required';
     }
-    if (!dropoffSector.trim()) {
-      newErrors.dropoffSector = 'Dropoff sector is required';
+    if (!dropoffLocation.trim()) {
+      newErrors.dropoffLocation = 'Dropoff location is required';
     }
     if (!selectedRide) {
       newErrors.ride = 'Please select a ride type';
@@ -280,8 +240,8 @@ function BookingForm() {
       displayTime = `${formattedHour}:${minutes} ${ampm}`;
     }
     const newOrder = {
-      pickup: `${pickupSector}, ${pickupDistrict}`,
-      dropoff: `${dropoffSector}, ${dropoffDistrict}`,
+      pickup: pickupLocation,
+      dropoff: dropoffLocation,
       type: ride.name,
       price: ride.price,
       date: displayDate,
@@ -307,21 +267,188 @@ function BookingForm() {
   const handlePaymentSubmit = (paymentData) => {
     console.log('Payment submitted:', paymentData);
     setStep(1);
-    setPickupProvince('');
-    setPickupDistrict('');
-    setPickupSector('');
-    setDropoffProvince('');
-    setDropoffDistrict('');
-    setDropoffSector('');
+    setPickupLocation('');
+    setDropoffLocation('');
     setSelectedRide(null);
     setRideTimeOption('now');
     setScheduledTime('');
     setScheduledDate(null);
   };
 
-  // Confirmation Component (unchanged)
+  // Confirmation Component (updated: includes phone and tel: call)
   const Confirmation = ({ order, onBookNow, onBack }) => {
-    // ... (confirmation implementation remains the same)
+    // Mock driver data (added phone)
+    const driver = {
+      name: "Michael Johnson",
+      rating: 4.9,
+      car: "Toyota Camry • White",
+      plate: "AB-1234",
+      arrivalTime: order.immediate ? "5 min" : "Scheduled",
+      arrivalText: order.immediate
+        ? `Today, ${new Date().toLocaleTimeString("en-US", {
+            hour: "2-digit",
+            minute: "2-digit",
+            hour12: true,
+          })}`
+        : order.time,
+      status: "Active",
+      phone: "+250788123456" // <- sample phone number included
+    };
+
+    // prepare tel: href
+    const phoneRaw = driver.phone || driver.phoneNumber || driver.contact || "";
+    const cleanPhone = phoneRaw ? phoneRaw.toString().replace(/[^\d+]/g, "") : "";
+    const telHref = cleanPhone ? `tel:${cleanPhone}` : null;
+
+    return (
+      <div className="bg-white rounded-lg p-6 border border-gray-200">
+        <div className="text-center mb-6">
+          <FaCheckCircle className="text-green-500 text-5xl mx-auto mb-4" />
+          <h2 className="text-2xl font-bold text-gray-800 mb-2">
+            {order.immediate ? 'Ride Confirmed!' : 'Ride Scheduled!'}
+          </h2>
+          <p className="text-gray-600">
+            {order.immediate ? 'Your driver is on the way to pick you up' : 'Your ride has been scheduled'}
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+          {/* Trip Details */}
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="font-semibold text-gray-800 mb-3">Trip Details</h3>
+
+            <div className="mb-3">
+              <div className="flex items-center text-sm text-gray-600 mb-1">
+                <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+                Pickup Location
+              </div>
+              <div className="font-medium">{order.pickup}</div>
+            </div>
+
+            <div className="mb-4">
+              <div className="flex items-center text-sm text-gray-600 mb-1">
+                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+                Drop-off Location
+              </div>
+              <div className="font-medium">{order.dropoff}</div>
+            </div>
+
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-gray-600">Ride Type</span>
+              <span className="font-medium">{order.type}</span>
+            </div>
+
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-gray-600">Date</span>
+              <span className="font-medium">{order.date}</span>
+            </div>
+
+            <div className="flex justify-between text-sm mb-2">
+              <span className="text-gray-600">Time</span>
+              <span className="font-medium">{order.time}</span>
+            </div>
+
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-600">Estimated Fare</span>
+              <span className="font-medium">{order.price}</span>
+            </div>
+          </div>
+
+          {/* Driver Info - Only show if immediate ride */}
+          {order.immediate && (
+            <div className="bg-gray-50 rounded-lg p-4">
+              <h3 className="font-semibold text-gray-800 mb-3">Your Driver</h3>
+
+              <div className="flex items-center mb-4">
+                <div className="relative mr-3">
+                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                    <FaUser className="text-blue-600" />
+                  </div>
+
+                  {driver.status === "Active" && (
+                    <span
+                      className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-green-500 ring-2 ring-white"
+                      title="Active driver"
+                      aria-hidden={false}
+                      aria-label="Active driver"
+                    />
+                  )}
+                </div>
+
+                <div>
+                  <div className="font-medium">{driver.name}</div>
+                  <div className="flex items-center text-sm text-yellow-500">
+                    {'★'.repeat(5)} <span className="text-gray-600 ml-1">{driver.rating}</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="text-sm text-gray-600 mb-2">{driver.car}</div>
+              <div className="text-sm text-gray-600 mb-4">Plate: {driver.plate}</div>
+
+              {/* Call driver: tel: link if phone exists, otherwise disabled */}
+              {telHref ? (
+                <a
+                  href={telHref}
+                  className="w-full inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm font-medium"
+                  aria-label={`Call driver ${driver.name} at ${cleanPhone}`}
+                >
+                  <FaPhone className="mr-2" /> Call {cleanPhone}
+                </a>
+              ) : (
+                <button
+                  disabled
+                  className="w-full bg-gray-200 text-gray-500 py-2 rounded-md text-sm font-medium cursor-not-allowed"
+                  aria-disabled="true"
+                  title="Phone number not available"
+                >
+                  <FaPhone className="mr-2" /> No phone number
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Arrival Time */}
+        <div className="bg-blue-50 rounded-lg p-4 mb-6 border border-blue-100">
+          <div className="flex justify-between items-center">
+            <div>
+              <div className="text-sm text-gray-600">
+                {order.immediate ? 'Arrival Time' : 'Scheduled For'}
+              </div>
+              <div className="text-2xl font-bold text-gray-800">{driver.arrivalTime}</div>
+              <div className="text-sm text-gray-600">
+                {order.immediate ? 'Driver arriving in' : 'Your ride is scheduled for'}
+              </div>
+              <div className="text-sm font-medium text-gray-800">{driver.arrivalText}</div>
+            </div>
+            <div className="text-4xl text-blue-600">
+              <FaClock />
+            </div>
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          <button
+            onClick={onBack}
+            className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-md font-medium flex items-center justify-center"
+          >
+            <FaArrowLeft className="mr-2" /> Book Another Ride
+          </button>
+          <button
+            onClick={onBookNow}
+            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-md font-medium"
+          >
+            {order.immediate ? 'Book Now' : 'Confirm Booking'}
+          </button>
+        </div>
+
+        <div className="text-center text-xs text-gray-500 mt-4">
+          {order.immediate ? 'Booking now' : 'Scheduled booking'}
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -332,9 +459,9 @@ function BookingForm() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-600 rounded-full mb-6">
             <FaCar className="text-white w-8 h-8" />
           </div>
-          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Book Your Ride in Rwanda</h2>
+          <h2 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">Book Your Ride</h2>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Experience premium transportation with our reliable and comfortable ride service across all districts and sectors of Rwanda
+            Experience premium transportation with our reliable and comfortable ride service
           </p>
         </div>
 
@@ -343,167 +470,39 @@ function BookingForm() {
           <div className="bg-white rounded-lg p-6 border border-gray-200">
             {/* Location Inputs */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              {/* Pickup Location Dropdown */}
               <div>
-                <label className="text-sm font-medium text-gray-700">Pickup Sector</label>
+                <label className="text-sm font-medium text-gray-700">Pickup Location</label>
                 <div className="relative">
-                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10">
+                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
                     <FaMapMarkerAlt className="text-blue-600" />
                   </div>
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 z-10">
-                    <FaChevronDown className="text-gray-400" />
-                  </div>
                   <input
-                    placeholder="Select pickup sector"
-                    value={pickupSector}
-                    readOnly
-                    onClick={() => setShowPickupDropdown(!showPickupDropdown)}
-                    className="pl-12 pr-10 h-14 border-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white rounded-lg text-base w-full cursor-pointer"
+                    placeholder="Enter pickup location in Rwanda"
+                    value={pickupLocation}
+                    onChange={(e) => setPickupLocation(e.target.value)}
+                    className="pl-12 h-14 border-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white rounded-lg text-base w-full"
                   />
-                  {showPickupDropdown && (
-                    <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                      <div className="sticky top-0 bg-white p-2 border-b">
-                        <div className="relative">
-                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                            <FaSearch className="text-gray-400" />
-                          </div>
-                          <input
-                            type="text"
-                            placeholder="Search sectors..."
-                            value={pickupSearch}
-                            onChange={(e) => setPickupSearch(e.target.value)}
-                            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </div>
-                      </div>
-                      <div className="p-2">
-                        {filteredPickupSectors.length > 0 ? (
-                          filteredPickupSectors.map((sector) => (
-                            <div
-                              key={sector}
-                              className="px-4 py-3 hover:bg-blue-50 cursor-pointer rounded-md"
-                              onClick={() => {
-                                setPickupSector(sector);
-                                setShowPickupDropdown(false);
-                                setPickupSearch('');
-                                
-                                // Find the district for this sector
-                                for (const province of rwandaData.provinces) {
-                                  for (const district of province.districts) {
-                                    if (district.sectors.includes(sector)) {
-                                      setPickupDistrict(district.name);
-                                      setPickupProvince(province.name);
-                                      break;
-                                    }
-                                  }
-                                }
-                              }}
-                            >
-                              {sector}
-                            </div>
-                          ))
-                        ) : (
-                          <div className="px-4 py-3 text-gray-500">No sectors found</div>
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
-                {pickupSector && (
-                  <div className="mt-2">
-                    <div className="text-sm text-gray-600">
-                      District: <span className="font-medium">{pickupDistrict}</span>
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      Province: <span className="font-medium">{pickupProvince}</span>
-                    </div>
-                  </div>
-                )}
-                {errors.pickupSector && (
-                  <p className="text-red-500 text-xs mt-1">{errors.pickupSector}</p>
+                {errors.pickupLocation && (
+                  <p className="text-red-500 text-xs mt-1">{errors.pickupLocation}</p>
                 )}
               </div>
 
-              {/* Dropoff Location Dropdown */}
               <div>
-                <label className="text-sm font-medium text-gray-700">Dropoff Sector</label>
+                <label className="text-sm font-medium text-gray-700">Dropoff Location</label>
                 <div className="relative">
-                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10">
+                  <div className="absolute left-4 top-1/2 transform -translate-y-1/2">
                     <FaMapMarkerAlt className="text-blue-600" />
                   </div>
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 z-10">
-                    <FaChevronDown className="text-gray-400" />
-                  </div>
                   <input
-                    placeholder="Select dropoff sector"
-                    value={dropoffSector}
-                    readOnly
-                    onClick={() => setShowDropoffDropdown(!showDropoffDropdown)}
-                    className="pl-12 pr-10 h-14 border-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white rounded-lg text-base w-full cursor-pointer"
+                    placeholder="Enter dropoff location in Rwanda"
+                    value={dropoffLocation}
+                    onChange={(e) => setDropoffLocation(e.target.value)}
+                    className="pl-12 h-14 border-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white rounded-lg text-base w-full"
                   />
-                  {showDropoffDropdown && (
-                    <div className="absolute z-20 mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                      <div className="sticky top-0 bg-white p-2 border-b">
-                        <div className="relative">
-                          <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
-                            <FaSearch className="text-gray-400" />
-                          </div>
-                          <input
-                            type="text"
-                            placeholder="Search sectors..."
-                            value={dropoffSearch}
-                            onChange={(e) => setDropoffSearch(e.target.value)}
-                            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        </div>
-                      </div>
-                      <div className="p-2">
-                        {filteredDropoffSectors.length > 0 ? (
-                          filteredDropoffSectors.map((sector) => (
-                            <div
-                              key={sector}
-                              className="px-4 py-3 hover:bg-blue-50 cursor-pointer rounded-md"
-                              onClick={() => {
-                                setDropoffSector(sector);
-                                setShowDropoffDropdown(false);
-                                setDropoffSearch('');
-                                
-                                // Find the district for this sector
-                                for (const province of rwandaData.provinces) {
-                                  for (const district of province.districts) {
-                                    if (district.sectors.includes(sector)) {
-                                      setDropoffDistrict(district.name);
-                                      setDropoffProvince(province.name);
-                                      break;
-                                    }
-                                  }
-                                }
-                              }}
-                            >
-                              {sector}
-                            </div>
-                          ))
-                        ) : (
-                          <div className="px-4 py-3 text-gray-500">No sectors found</div>
-                        )}
-                      </div>
-                    </div>
-                  )}
                 </div>
-                {dropoffSector && (
-                  <div className="mt-2">
-                    <div className="text-sm text-gray-600">
-                      District: <span className="font-medium">{dropoffDistrict}</span>
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      Province: <span className="font-medium">{dropoffProvince}</span>
-                    </div>
-                  </div>
-                )}
-                {errors.dropoffSector && (
-                  <p className="text-red-500 text-xs mt-1">{errors.dropoffSector}</p>
+                {errors.dropoffLocation && (
+                  <p className="text-red-500 text-xs mt-1">{errors.dropoffLocation}</p>
                 )}
               </div>
             </div>
