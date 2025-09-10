@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   FaMapMarkerAlt, FaCar, FaStar, FaRoad, FaUsers, FaSuitcase, FaShieldAlt, 
   FaCheckCircle, FaClock, FaPhone, FaArrowLeft, FaUser, FaCalendarAlt,
@@ -6,25 +6,30 @@ import {
 } from 'react-icons/fa';
 import PaymentForm from './PaymentForm';
 
-// Calendar Component (unchanged)
+// Calendar Component
 const Calendar = ({ selectedDate, onDateSelect, scheduledTime, onTimeChange }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
     return new Date(year, month + 1, 0).getDate();
   };
+  
   const getFirstDayOfMonth = (date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
     return new Date(year, month, 1).getDay();
   };
+  
   const prevMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1, 1));
   };
+  
   const nextMonth = () => {
     setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1));
   };
+  
   const isToday = (date) => {
     const today = new Date();
     return (
@@ -33,6 +38,7 @@ const Calendar = ({ selectedDate, onDateSelect, scheduledTime, onTimeChange }) =
       date.getFullYear() === today.getFullYear()
     );
   };
+  
   const isSelected = (date) => {
     if (!selectedDate) return false;
     return (
@@ -41,24 +47,28 @@ const Calendar = ({ selectedDate, onDateSelect, scheduledTime, onTimeChange }) =
       date.getFullYear() === selectedDate.getFullYear()
     );
   };
+  
   const generateCalendarDays = () => {
     const daysInMonth = getDaysInMonth(currentMonth);
     const firstDay = getFirstDayOfMonth(currentMonth);
     const days = [];
+    
     for (let i = 0; i < firstDay; i++) {
       days.push(<div key={`empty-${i}`} className="h-10"></div>);
     }
+    
     for (let day = 1; day <= daysInMonth; day++) {
       const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
       const today = isToday(date);
       const selected = isSelected(date);
+      
       days.push(
         <div
           key={`day-${day}`}
-          className={`h-10 flex items-center justify-center rounded-full cursor-pointer transition-colors
+          className={`h-10 flex items-center justify-center rounded-full cursor-pointer transition-all duration-200 ease-in-out
             ${today ? 'bg-blue-100 text-blue-600 font-semibold' : ''}
             ${selected ? 'bg-blue-600 text-white font-semibold' : ''}
-            ${!today && !selected ? 'hover:bg-gray-100' : ''}
+            ${!today && !selected ? 'hover:bg-blue-100 hover:text-blue-600' : ''}
             ${date < new Date().setHours(0, 0, 0, 0) ? 'text-gray-300 cursor-not-allowed' : ''}
           `}
           onClick={() => {
@@ -71,8 +81,10 @@ const Calendar = ({ selectedDate, onDateSelect, scheduledTime, onTimeChange }) =
         </div>
       );
     }
+    
     return days;
   };
+  
   const generateTimeSlots = () => {
     const times = [];
     for (let hour = 5; hour <= 23; hour++) {
@@ -101,14 +113,14 @@ const Calendar = ({ selectedDate, onDateSelect, scheduledTime, onTimeChange }) =
       <div className="flex items-center justify-between mb-4">
         <button 
           onClick={prevMonth}
-          className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+          className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
         >
           <FaChevronLeft className="text-gray-600" />
         </button>
         <h3 className="font-semibold text-gray-800">{monthName}</h3>
         <button 
           onClick={nextMonth}
-          className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+          className="p-2 rounded-full hover:bg-gray-100 transition-colors duration-200"
         >
           <FaChevronRight className="text-gray-600" />
         </button>
@@ -136,7 +148,7 @@ const Calendar = ({ selectedDate, onDateSelect, scheduledTime, onTimeChange }) =
             <select
               value={scheduledTime}
               onChange={(e) => onTimeChange(e.target.value)}
-              className="pl-10 h-12 border-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white rounded-lg text-base w-full"
+              className="pl-10 h-12 border-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white rounded-lg text-base w-full hover:border-blue-300 transition-colors duration-200"
             >
               <option value="">Select a time</option>
               {generateTimeSlots()}
@@ -144,6 +156,179 @@ const Calendar = ({ selectedDate, onDateSelect, scheduledTime, onTimeChange }) =
           </div>
         </div>
       )}
+    </div>
+  );
+};
+
+// Confirmation Component
+const Confirmation = ({ order, onBookNow, onBack }) => {
+  const driver = {
+    name: "Michael Johnson",
+    rating: 4.9,
+    car: "Toyota Camry • White",
+    plate: "AB-1234",
+    arrivalTime: order.immediate ? "5 min" : "Scheduled",
+    arrivalText: order.immediate
+      ? `Today, ${new Date().toLocaleTimeString("en-US", {
+          hour: "2-digit",
+          minute: "2-digit",
+          hour12: true,
+        })}`
+      : order.time,
+    status: "Active",
+    phone: "+250788123456"
+  };
+
+  const phoneRaw = driver.phone || driver.phoneNumber || driver.contact || "";
+  const cleanPhone = phoneRaw ? phoneRaw.toString().replace(/[^\d+]/g, "") : "";
+  const telHref = cleanPhone ? `tel:${cleanPhone}` : null;
+
+  return (
+    <div className="bg-white rounded-lg p-6 border border-gray-200">
+      <div className="text-center mb-6">
+        <FaCheckCircle className="text-green-500 text-5xl mx-auto mb-4" />
+        <h2 className="text-2xl font-bold text-gray-800 mb-2">
+          {order.immediate ? 'Ride Confirmed!' : 'Ride Scheduled!'}
+        </h2>
+        <p className="text-gray-600">
+          {order.immediate ? 'Your driver is on the way to pick you up' : 'Your ride has been scheduled'}
+        </p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+        {/* Trip Details */}
+        <div className="bg-gray-50 rounded-lg p-4">
+          <h3 className="font-semibold text-gray-800 mb-3">Trip Details</h3>
+
+          <div className="mb-3">
+            <div className="flex items-center text-sm text-gray-600 mb-1">
+              <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+              Pickup Location
+            </div>
+            <div className="font-medium">{order.pickup}</div>
+          </div>
+
+          <div className="mb-4">
+            <div className="flex items-center text-sm text-gray-600 mb-1">
+              <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
+              Drop-off Location
+            </div>
+            <div className="font-medium">{order.dropoff}</div>
+          </div>
+
+          <div className="flex justify-between text-sm mb-2">
+            <span className="text-gray-600">Ride Type</span>
+            <span className="font-medium">{order.type}</span>
+          </div>
+
+          <div className="flex justify-between text-sm mb-2">
+            <span className="text-gray-600">Date</span>
+            <span className="font-medium">{order.date}</span>
+          </div>
+
+          <div className="flex justify-between text-sm mb-2">
+            <span className="text-gray-600">Time</span>
+            <span className="font-medium">{order.time}</span>
+          </div>
+
+          <div className="flex justify-between text-sm">
+            <span className="text-gray-600">Estimated Fare</span>
+            <span className="font-medium">{order.price}</span>
+          </div>
+        </div>
+
+        {/* Driver Info */}
+        {order.immediate && (
+          <div className="bg-gray-50 rounded-lg p-4">
+            <h3 className="font-semibold text-gray-800 mb-3">Your Driver</h3>
+
+            <div className="flex items-center mb-4">
+              <div className="relative mr-3">
+                <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                  <FaUser className="text-blue-600" />
+                </div>
+
+                {driver.status === "Active" && (
+                  <span
+                    className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-green-500 ring-2 ring-white"
+                    title="Active driver"
+                    aria-hidden={false}
+                    aria-label="Active driver"
+                  />
+                )}
+              </div>
+
+              <div>
+                <div className="font-medium">{driver.name}</div>
+                <div className="flex items-center text-sm text-yellow-500">
+                  {'★'.repeat(5)} <span className="text-gray-600 ml-1">{driver.rating}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="text-sm text-gray-600 mb-2">{driver.car}</div>
+            <div className="text-sm text-gray-600 mb-4">Plate: {driver.plate}</div>
+
+            {telHref ? (
+              <a
+                href={telHref}
+                className="w-full inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm font-medium transition-colors duration-200"
+                aria-label={`Call driver ${driver.name} at ${cleanPhone}`}
+              >
+                <FaPhone className="mr-2" /> Call {cleanPhone}
+              </a>
+            ) : (
+              <button
+                disabled
+                className="w-full bg-gray-200 text-gray-500 py-2 rounded-md text-sm font-medium cursor-not-allowed"
+                aria-disabled="true"
+                title="Phone number not available"
+              >
+                <FaPhone className="mr-2" /> No phone number
+              </button>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Arrival Time */}
+      <div className="bg-blue-50 rounded-lg p-4 mb-6 border border-blue-100">
+        <div className="flex justify-between items-center">
+          <div>
+            <div className="text-sm text-gray-600">
+              {order.immediate ? 'Arrival Time' : 'Scheduled For'}
+            </div>
+            <div className="text-2xl font-bold text-gray-800">{driver.arrivalTime}</div>
+            <div className="text-sm text-gray-600">
+              {order.immediate ? 'Driver arriving in' : 'Your ride is scheduled for'}
+            </div>
+            <div className="text-sm font-medium text-gray-800">{driver.arrivalText}</div>
+          </div>
+          <div className="text-4xl text-blue-600">
+            <FaClock />
+          </div>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <button
+          onClick={onBack}
+          className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-md font-medium flex items-center justify-center hover:bg-gray-50 transition-colors duration-200"
+        >
+          <FaArrowLeft className="mr-2" /> Book Another Ride
+        </button>
+        <button
+          onClick={onBookNow}
+          className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-md font-medium transition-colors duration-200"
+        >
+          {order.immediate ? 'Book Now' : 'Confirm Booking'}
+        </button>
+      </div>
+
+      <div className="text-center text-xs text-gray-500 mt-4">
+        {order.immediate ? 'Booking now' : 'Scheduled booking'}
+      </div>
     </div>
   );
 };
@@ -275,182 +460,6 @@ function BookingForm() {
     setScheduledDate(null);
   };
 
-  // Confirmation Component (updated: includes phone and tel: call)
-  const Confirmation = ({ order, onBookNow, onBack }) => {
-    // Mock driver data (added phone)
-    const driver = {
-      name: "Michael Johnson",
-      rating: 4.9,
-      car: "Toyota Camry • White",
-      plate: "AB-1234",
-      arrivalTime: order.immediate ? "5 min" : "Scheduled",
-      arrivalText: order.immediate
-        ? `Today, ${new Date().toLocaleTimeString("en-US", {
-            hour: "2-digit",
-            minute: "2-digit",
-            hour12: true,
-          })}`
-        : order.time,
-      status: "Active",
-      phone: "+250788123456" // <- sample phone number included
-    };
-
-    // prepare tel: href
-    const phoneRaw = driver.phone || driver.phoneNumber || driver.contact || "";
-    const cleanPhone = phoneRaw ? phoneRaw.toString().replace(/[^\d+]/g, "") : "";
-    const telHref = cleanPhone ? `tel:${cleanPhone}` : null;
-
-    return (
-      <div className="bg-white rounded-lg p-6 border border-gray-200">
-        <div className="text-center mb-6">
-          <FaCheckCircle className="text-green-500 text-5xl mx-auto mb-4" />
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            {order.immediate ? 'Ride Confirmed!' : 'Ride Scheduled!'}
-          </h2>
-          <p className="text-gray-600">
-            {order.immediate ? 'Your driver is on the way to pick you up' : 'Your ride has been scheduled'}
-          </p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-          {/* Trip Details */}
-          <div className="bg-gray-50 rounded-lg p-4">
-            <h3 className="font-semibold text-gray-800 mb-3">Trip Details</h3>
-
-            <div className="mb-3">
-              <div className="flex items-center text-sm text-gray-600 mb-1">
-                <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
-                Pickup Location
-              </div>
-              <div className="font-medium">{order.pickup}</div>
-            </div>
-
-            <div className="mb-4">
-              <div className="flex items-center text-sm text-gray-600 mb-1">
-                <div className="w-2 h-2 bg-green-500 rounded-full mr-2"></div>
-                Drop-off Location
-              </div>
-              <div className="font-medium">{order.dropoff}</div>
-            </div>
-
-            <div className="flex justify-between text-sm mb-2">
-              <span className="text-gray-600">Ride Type</span>
-              <span className="font-medium">{order.type}</span>
-            </div>
-
-            <div className="flex justify-between text-sm mb-2">
-              <span className="text-gray-600">Date</span>
-              <span className="font-medium">{order.date}</span>
-            </div>
-
-            <div className="flex justify-between text-sm mb-2">
-              <span className="text-gray-600">Time</span>
-              <span className="font-medium">{order.time}</span>
-            </div>
-
-            <div className="flex justify-between text-sm">
-              <span className="text-gray-600">Estimated Fare</span>
-              <span className="font-medium">{order.price}</span>
-            </div>
-          </div>
-
-          {/* Driver Info - Only show if immediate ride */}
-          {order.immediate && (
-            <div className="bg-gray-50 rounded-lg p-4">
-              <h3 className="font-semibold text-gray-800 mb-3">Your Driver</h3>
-
-              <div className="flex items-center mb-4">
-                <div className="relative mr-3">
-                  <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-                    <FaUser className="text-blue-600" />
-                  </div>
-
-                  {driver.status === "Active" && (
-                    <span
-                      className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 rounded-full bg-green-500 ring-2 ring-white"
-                      title="Active driver"
-                      aria-hidden={false}
-                      aria-label="Active driver"
-                    />
-                  )}
-                </div>
-
-                <div>
-                  <div className="font-medium">{driver.name}</div>
-                  <div className="flex items-center text-sm text-yellow-500">
-                    {'★'.repeat(5)} <span className="text-gray-600 ml-1">{driver.rating}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="text-sm text-gray-600 mb-2">{driver.car}</div>
-              <div className="text-sm text-gray-600 mb-4">Plate: {driver.plate}</div>
-
-              {/* Call driver: tel: link if phone exists, otherwise disabled */}
-              {telHref ? (
-                <a
-                  href={telHref}
-                  className="w-full inline-flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm font-medium"
-                  aria-label={`Call driver ${driver.name} at ${cleanPhone}`}
-                >
-                  <FaPhone className="mr-2" /> Call {cleanPhone}
-                </a>
-              ) : (
-                <button
-                  disabled
-                  className="w-full bg-gray-200 text-gray-500 py-2 rounded-md text-sm font-medium cursor-not-allowed"
-                  aria-disabled="true"
-                  title="Phone number not available"
-                >
-                  <FaPhone className="mr-2" /> No phone number
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Arrival Time */}
-        <div className="bg-blue-50 rounded-lg p-4 mb-6 border border-blue-100">
-          <div className="flex justify-between items-center">
-            <div>
-              <div className="text-sm text-gray-600">
-                {order.immediate ? 'Arrival Time' : 'Scheduled For'}
-              </div>
-              <div className="text-2xl font-bold text-gray-800">{driver.arrivalTime}</div>
-              <div className="text-sm text-gray-600">
-                {order.immediate ? 'Driver arriving in' : 'Your ride is scheduled for'}
-              </div>
-              <div className="text-sm font-medium text-gray-800">{driver.arrivalText}</div>
-            </div>
-            <div className="text-4xl text-blue-600">
-              <FaClock />
-            </div>
-          </div>
-        </div>
-
-        {/* Action Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3">
-          <button
-            onClick={onBack}
-            className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-md font-medium flex items-center justify-center"
-          >
-            <FaArrowLeft className="mr-2" /> Book Another Ride
-          </button>
-          <button
-            onClick={onBookNow}
-            className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-md font-medium"
-          >
-            {order.immediate ? 'Book Now' : 'Confirm Booking'}
-          </button>
-        </div>
-
-        <div className="text-center text-xs text-gray-500 mt-4">
-          {order.immediate ? 'Booking now' : 'Scheduled booking'}
-        </div>
-      </div>
-    );
-  };
-
   return (
     <section className="py-12 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="max-w-4xl mx-auto">
@@ -480,7 +489,7 @@ function BookingForm() {
                     placeholder="Enter pickup location in Rwanda"
                     value={pickupLocation}
                     onChange={(e) => setPickupLocation(e.target.value)}
-                    className="pl-12 h-14 border-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white rounded-lg text-base w-full"
+                    className="pl-12 h-14 border-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white rounded-lg text-base w-full hover:border-blue-300 transition-colors duration-200"
                   />
                 </div>
                 {errors.pickupLocation && (
@@ -498,7 +507,7 @@ function BookingForm() {
                     placeholder="Enter dropoff location in Rwanda"
                     value={dropoffLocation}
                     onChange={(e) => setDropoffLocation(e.target.value)}
-                    className="pl-12 h-14 border-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white rounded-lg text-base w-full"
+                    className="pl-12 h-14 border-2 border-gray-200 focus:border-blue-500 focus:ring-blue-500 bg-white rounded-lg text-base w-full hover:border-blue-300 transition-colors duration-200"
                   />
                 </div>
                 {errors.dropoffLocation && (
@@ -511,8 +520,8 @@ function BookingForm() {
             <div className="mb-6">
               <label className="text-sm font-medium text-gray-700 mb-3 block">When do you need the ride?</label>
               <div className="grid grid-cols-2 gap-4 mb-4">
-                <label className={`flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                  rideTimeOption === 'now' ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-gray-200 hover:border-blue-300'
+                <label className={`flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                  rideTimeOption === 'now' ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
                 }`}>
                   <input
                     type="radio"
@@ -525,8 +534,8 @@ function BookingForm() {
                   <FaClock className="mr-2 text-blue-600" />
                   Right Now
                 </label>
-                <label className={`flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all ${
-                  rideTimeOption === 'schedule' ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-gray-200 hover:border-blue-300'
+                <label className={`flex items-center justify-center p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                  rideTimeOption === 'schedule' ? 'border-blue-500 bg-blue-50 shadow-md' : 'border-gray-200 hover:border-blue-300 hover:bg-blue-50'
                 }`}>
                   <input
                     type="radio"
@@ -571,12 +580,16 @@ function BookingForm() {
                     <div 
                       key={ride.id} 
                       onClick={() => setSelectedRide(ride.id)} 
-                      className={`cursor-pointer border-2 rounded-lg p-4 transition-transform duration-300 ${
-                        isSelected ? 'border-blue-500 shadow-lg' : 'border-gray-200 hover:border-blue-300 shadow-md'
+                      className={`cursor-pointer border-2 rounded-lg p-4 transition-all duration-300 ${
+                        isSelected 
+                          ? 'border-blue-500 shadow-lg transform scale-105' 
+                          : 'border-gray-200 hover:border-blue-300 hover:shadow-lg hover:scale-105'
                       }`}
                     >
                       <div className={`flex items-center mb-4 ${isSelected ? 'text-white' : 'text-gray-900'}`}>
-                        <div className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-100 mr-3">
+                        <div className={`w-10 h-10 flex items-center justify-center rounded-full mr-3 ${
+                          isSelected ? 'bg-blue-700' : 'bg-blue-100'
+                        }`}>
                           <Icon className={`w-5 h-5 ${isSelected ? 'text-white' : 'text-blue-600'}`} />
                         </div>
                         <div>
@@ -609,7 +622,7 @@ function BookingForm() {
             <div className="flex justify-center">
               <button 
                 onClick={handleSubmit} 
-                className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition"
+                className="bg-blue-600 text-white px-8 py-4 rounded-lg font-semibold hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
               >
                 Confirm & Book Ride
               </button>

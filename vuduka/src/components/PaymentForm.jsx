@@ -7,7 +7,7 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 import { QRCodeCanvas } from 'qrcode.react';
 
-function PaymentForm({ order, onPaymentSubmit, onClose }) {
+function PaymentForm({ order, onPaymentSubmit, onClose, onPaymentSuccess }) {
   const [formData, setFormData] = useState({
     fullName: '', phone: '', nationalId: '', gender: 'male',
     paymentMethod: 'mtn', mobilePaymentNumber: '', cardNumber: '',
@@ -92,6 +92,7 @@ function PaymentForm({ order, onPaymentSubmit, onClose }) {
       setIsSubmitting(false);
       setPaymentSuccess(true);
       onPaymentSubmit(formData);
+      onPaymentSuccess(order); // This will add the order to history
     }, delay);
   };
 
@@ -215,8 +216,6 @@ function PaymentForm({ order, onPaymentSubmit, onClose }) {
       </div>
     );
   }
-
- 
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto bg-gray-900 bg-opacity-50 flex items-center justify-center p-4">

@@ -3,7 +3,6 @@ import { FaCar, FaThumbsUp } from 'react-icons/fa';
 
 import Header from './components/Header';
 import MobileMenu from './components/MobileMenu';
-import Cart from './components/Cart';
 import PaymentForm from './components/PaymentForm';
 import HeroSection from './components/HeroSection';
 import BookingForm from './components/BookingForm';
@@ -12,6 +11,7 @@ import WhyChooseUsSection from './components/WhyChooseUsSection';
 import TestimonialsSection from './components/TestimonialsSection';
 import DownloadAppSection from './components/DownloadAppSection';
 import Footer from './components/Footer';
+import OrderHistory from './components/OrderHistory';
 
 function App() {
   const [order, setOrder] = useState(null);
@@ -19,8 +19,6 @@ function App() {
   const [dropoffLocation, setDropoffLocation] = useState('');
   const [rideType, setRideType] = useState('economy');
   const [step, setStep] = useState(1);
-  const [cart, setCart] = useState([]);
-  const [isCartOpen, setIsCartOpen] = useState(false);
   const [pickupSuggestions, setPickupSuggestions] = useState([]);
   const [dropoffSuggestions, setDropoffSuggestions] = useState([]);
   const [showOrderAnimation, setShowOrderAnimation] = useState(false);
@@ -29,9 +27,37 @@ function App() {
   const [paymentOrder, setPaymentOrder] = useState(null);
   const [showPaymentForm, setShowPaymentForm] = useState(false);
   const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [orderHistory, setOrderHistory] = useState([]);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [showAbout, setShowAbout] = useState(false);
+  
   const orderButtonRef = useRef(null);
-  const cartButtonRef = useRef(null);
   const bookingFormRef = useRef(null);
+  <Header 
+  onMenuClick={() => setIsMobileMenuOpen(true)}
+  onHistoryClick={() => setIsHistoryOpen(true)}
+  onAboutClick={() => setShowAbout(true)}
+  hasOrderHistory={orderHistory.length > 0}
+  />
+
+
+
+
+  {showAbout && (
+  <div 
+    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50"
+    onClick={() => setShowAbout(false)}
+  >
+    <div 
+      className="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto"
+      onClick={(e) => e.stopPropagation()}
+    >
+      {/* Your About modal content from HeroSection */}
+    </div>
+  </div>
+)}
+
+
 
   // Scroll to booking form with highlight effect
   const scrollToBookingForm = () => {
@@ -49,20 +75,34 @@ function App() {
     }
   };
 
-  // Placeholder handler functions
+  // Handle payment submission
   const handlePaymentSubmit = (paymentData) => {
     console.log('Payment submitted:', paymentData);
     setPaymentSuccess(true);
     setShowPaymentForm(false);
+    
+    // Add the completed order to history
+    if (paymentOrder) {
+      const orderWithPayment = {
+        ...paymentOrder,
+        payment: paymentData,
+        id: Date.now(), // unique ID for the order
+        status: 'completed',
+        timestamp: new Date().toISOString(),
+        driver: getRandomDriverName(),
+        rating: (Math.random() * (5 - 4) + 4).toFixed(1),
+        duration: `${Math.floor(Math.random() * (30 - 10 + 1) + 10)} min`
+      };
+      
+      setOrderHistory(prev => [orderWithPayment, ...prev]);
+      localStorage.setItem('rideOrderHistory', JSON.stringify([orderWithPayment, ...orderHistory]));
+    }
   };
 
-  const removeFromCart = (index) => {
-    setCart(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handlePay = (order) => {
-    setPaymentOrder(order);
-    setShowPaymentForm(true);
+  // Helper function to generate random driver names
+  const getRandomDriverName = () => {
+    const names = ['Jean Claude', 'Marie Aimee', 'Paul R.', 'Alice M.', 'John D.', 'Chantal U.', 'Eric K.', 'Divine I.'];
+    return names[Math.floor(Math.random() * names.length)];
   };
 
   const handleOrderSubmit = (orderData) => {
@@ -75,10 +115,6 @@ function App() {
     setOrder(null);
   };
 
-  const handleAddToCart = (order) => {
-    setCart(prev => [...prev, order]);
-  };
-
   const handleLocationInput = (type, value) => {
     if (type === 'pickup') setPickupLocation(value);
     else setDropoffLocation(value);
@@ -88,6 +124,14 @@ function App() {
     if (type === 'pickup') setPickupLocation(value);
     else setDropoffLocation(value);
   };
+
+  // Load order history from localStorage on component mount
+  React.useEffect(() => {
+    const savedOrderHistory = localStorage.getItem('rideOrderHistory');
+    if (savedOrderHistory) {
+      setOrderHistory(JSON.parse(savedOrderHistory));
+    }
+  }, []);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex flex-col">
@@ -137,24 +181,24 @@ function App() {
         </div>
       )}
 
+      {/* Order History Modal */}
+      {isHistoryOpen && (
+        <OrderHistory 
+          orders={orderHistory} 
+          isOpen={isHistoryOpen} 
+          onClose={() => setIsHistoryOpen(false)} 
+        />
+      )}
+
       <Header 
-        cartCount={cart.length} 
-        onCartClick={() => setIsCartOpen(true)}
         onMenuClick={() => setIsMobileMenuOpen(true)}
-        cartButtonRef={cartButtonRef}
+        onHistoryClick={() => setIsHistoryOpen(true)}
+        hasOrderHistory={orderHistory.length > 0}
       />
 
       <MobileMenu 
         isOpen={isMobileMenuOpen} 
         onClose={() => setIsMobileMenuOpen(false)} 
-      />
-
-      <Cart 
-        orders={cart} 
-        isOpen={isCartOpen} 
-        onClose={() => setIsCartOpen(false)}
-        onRemove={removeFromCart}
-        onPay={handlePay}
       />
 
       <main className="mt-24 md:mt-28 flex-1 w-full max-w-6xl mx-auto px-4 py-8">
@@ -171,7 +215,6 @@ function App() {
             dropoffSuggestions={dropoffSuggestions}
             onOrderSubmit={handleOrderSubmit}
             onReset={handleReset}
-            onAddToCart={handleAddToCart}
             onLocationInput={handleLocationInput}
             onSuggestionClick={handleSuggestionClick}
             onRideTypeChange={setRideType}
