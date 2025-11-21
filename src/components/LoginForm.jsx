@@ -1,23 +1,18 @@
 // LoginForm.jsx
 import React, { useState } from 'react';
+import { FaEnvelope, FaLock, FaEye, FaEyeSlash, FaTimes, FaPhone, FaGoogle } from 'react-icons/fa';
 
-const LoginForm = ({ isOpen, onClose, onLoginSuccess }) => {
-  const [currentView, setCurrentView] = useState('login');
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phoneNumber: '',
-    password: '',
-    confirmPassword: ''
-  });
+const LoginForm = ({ isOpen, onClose, onLogin, onSwitchToRegister, authMessage, onGoogleLogin }) => {
   const [loginData, setLoginData] = useState({
     emailOrPhone: '',
     password: ''
   });
-  const [resetEmail, setResetEmail] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [errors, setErrors] = useState({});
   const [isLoading, setIsLoading] = useState(false);
-  const [user, setUser] = useState(null);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+
+  if (!isOpen) return null;
 
   // Input validation
   const validateEmail = (email) => {
@@ -30,23 +25,7 @@ const LoginForm = ({ isOpen, onClose, onLoginSuccess }) => {
     return re.test(phone);
   };
 
-  const validatePassword = (password) => {
-    return password.length >= 8;
-  };
-
   // Handle form changes
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-    // Clear error when user starts typing
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
-
   const handleLoginChange = (e) => {
     const { name, value } = e.target;
     setLoginData(prev => ({
@@ -59,68 +38,7 @@ const LoginForm = ({ isOpen, onClose, onLoginSuccess }) => {
     }
   };
 
-  // Simulate user storage (in real app, this would be an API call)
-  const storeUser = (userData) => {
-    localStorage.setItem('rideAppUser', JSON.stringify(userData));
-    setUser(userData);
-  };
-
-  const getStoredUser = () => {
-    const stored = localStorage.getItem('rideAppUser');
-    return stored ? JSON.parse(stored) : null;
-  };
-
-  // Form submissions
-  const handleSignup = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-    
-    const newErrors = {};
-    
-    if (!formData.fullName.trim()) {
-      newErrors.fullName = 'Full name is required';
-    }
-    
-    if (!validateEmail(formData.email)) {
-      newErrors.email = 'Valid email is required';
-    }
-    
-    if (!validatePhone(formData.phoneNumber)) {
-      newErrors.phoneNumber = 'Valid phone number is required';
-    }
-    
-    if (!validatePassword(formData.password)) {
-      newErrors.password = 'Password must be at least 8 characters';
-    }
-    
-    if (formData.password !== formData.confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match';
-    }
-    
-    setErrors(newErrors);
-    
-    if (Object.keys(newErrors).length === 0) {
-      // Simulate API call and user creation
-      setTimeout(() => {
-        const userData = {
-          id: Date.now(),
-          fullName: formData.fullName,
-          email: formData.email,
-          phoneNumber: formData.phoneNumber,
-          isVerified: false
-        };
-        
-        storeUser(userData);
-        alert('Verification email sent! Please check your inbox.');
-        setCurrentView('login');
-        setIsLoading(false);
-        onClose(); // Close modal after signup
-      }, 1000);
-    } else {
-      setIsLoading(false);
-    }
-  };
-
+  // Form submission
   const handleLogin = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -140,363 +58,232 @@ const LoginForm = ({ isOpen, onClose, onLoginSuccess }) => {
     setErrors(newErrors);
     
     if (Object.keys(newErrors).length === 0) {
-      // Simulate API call - check if user exists
-      setTimeout(() => {
-        const storedUser = getStoredUser();
-        
-        if (storedUser && 
-            (storedUser.email === loginData.emailOrPhone || 
-             storedUser.phoneNumber === loginData.emailOrPhone)) {
-          
-          setUser(storedUser);
-          onLoginSuccess(storedUser);
-          alert(`Welcome back, ${storedUser.fullName}!`);
-          onClose();
-        } else {
-          setErrors({ emailOrPhone: 'Invalid credentials. Please try again or sign up.' });
-        }
+      const success = onLogin(loginData);
+      if (!success) {
         setIsLoading(false);
-      }, 1000);
+      }
     } else {
       setIsLoading(false);
     }
   };
 
-  const handleForgotPassword = async (e) => {
-    e.preventDefault();
-    
-    if (!validateEmail(resetEmail)) {
-      setErrors({ resetEmail: 'Valid email is required' });
-      return;
+  // Google OAuth handler
+  const handleGoogleLogin = async () => {
+    setIsGoogleLoading(true);
+    try {
+      if (onGoogleLogin) {
+        await onGoogleLogin();
+      }
+    } catch (error) {
+      console.error('Google login failed:', error);
+    } finally {
+      setIsGoogleLoading(false);
     }
-    
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      alert('Password reset link sent to your email!');
-      setCurrentView('login');
-      setIsLoading(false);
-    }, 1000);
-  };
-
-  const handleContinueWithEmail = () => {
-    if (!validateEmail(loginData.emailOrPhone)) {
-      setErrors({ emailOrPhone: 'Please enter a valid email address' });
-      return;
-    }
-    
-    alert(`Login continuation email sent to ${loginData.emailOrPhone}`);
   };
 
   const handleClose = () => {
-    setCurrentView('login');
-    setErrors({});
-    setFormData({
-      fullName: '',
-      email: '',
-      phoneNumber: '',
-      password: '',
-      confirmPassword: ''
-    });
     setLoginData({
       emailOrPhone: '',
       password: ''
     });
-    setResetEmail('');
+    setErrors({});
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div className="fixed inset-0 z-50 bg-black bg-opacity-70 flex items-center justify-center p-4">
       <div className="max-w-md w-full bg-white rounded-2xl shadow-xl overflow-hidden">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-blue-600 to-indigo-700 p-6 text-white relative">
-          <button
-            onClick={handleClose}
-            className="absolute top-4 right-4 text-white hover:text-gray-200 transition duration-200"
-          >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-          <h1 className="text-2xl font-bold text-center">
-            {currentView === 'login' && 'Welcome Back'}
-            {currentView === 'signup' && 'Create Account'}
-            {currentView === 'forgot' && 'Reset Password'}
-          </h1>
-          <p className="text-blue-100 text-center text-sm mt-2">
-            {currentView === 'login' && 'Sign in to your account to continue'}
-            {currentView === 'signup' && 'Join us today and get started'}
-            {currentView === 'forgot' && 'Enter your email to reset your password'}
-          </p>
-        </div>
+        <div className="p-8">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-800">Welcome Back</h1>
+              <p className="text-gray-600 text-sm mt-1">Sign in to your account to continue</p>
+            </div>
+            <button
+              onClick={handleClose}
+              className="text-gray-400 hover:text-gray-600 transition duration-200"
+            >
+              <FaTimes className="text-xl" />
+            </button>
+          </div>
 
-        {/* Forms */}
-        <div className="p-6">
+          {/* Auth Message */}
+          {authMessage && (
+            <div className={`p-3 rounded-lg mb-4 ${
+              authMessage.includes('successful') 
+                ? 'bg-green-100 text-green-700 border border-green-200' 
+                : 'bg-red-100 text-red-700 border border-red-200'
+            }`}>
+              <div className="flex items-center space-x-2">
+                {authMessage.includes('successful') ? (
+                  <svg className="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg className="w-4 h-4 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                )}
+                <span className="text-sm font-medium">{authMessage}</span>
+              </div>
+            </div>
+          )}
+
+          {/* Google OAuth Button */}
+          <button
+            onClick={handleGoogleLogin}
+            disabled={isGoogleLoading}
+            className="w-full flex items-center justify-center gap-3 border border-gray-300 hover:border-gray-400 bg-white text-gray-700 py-3 px-4 rounded-lg font-medium transition duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none mb-6"
+          >
+            {isGoogleLoading ? (
+              <div className="flex items-center justify-center space-x-2">
+                <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+                <span>Connecting...</span>
+              </div>
+            ) : (
+              <>
+                <FaGoogle className="text-red-500 text-lg" />
+                <span>Continue with Google</span>
+              </>
+            )}
+          </button>
+
+          {/* Divider */}
+          <div className="relative mb-6">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Or continue with email</span>
+            </div>
+          </div>
+
           {/* Login Form */}
-          {currentView === 'login' && (
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email or Phone Number
-                </label>
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Email or Phone Number
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  {loginData.emailOrPhone.includes('@') ? (
+                    <FaEnvelope className="h-5 w-5 text-gray-400" />
+                  ) : (
+                    <FaPhone className="h-5 w-5 text-gray-400" />
+                  )}
+                </div>
                 <input
                   type="text"
                   name="emailOrPhone"
                   value={loginData.emailOrPhone}
                   onChange={handleLoginChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`block w-full pl-10 pr-3 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ${
                     errors.emailOrPhone ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="Enter email or phone number"
                 />
-                {errors.emailOrPhone && (
-                  <p className="text-red-500 text-xs mt-1">{errors.emailOrPhone}</p>
-                )}
               </div>
+              {errors.emailOrPhone && (
+                <p className="text-red-500 text-xs mt-1 flex items-center space-x-1">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span>{errors.emailOrPhone}</span>
+                </p>
+              )}
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
-                </label>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <FaLock className="h-5 w-5 text-gray-400" />
+                </div>
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   name="password"
                   value={loginData.password}
                   onChange={handleLoginChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
+                  className={`block w-full pl-10 pr-10 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-200 ${
                     errors.password ? 'border-red-500' : 'border-gray-300'
                   }`}
                   placeholder="Enter your password"
                 />
-                {errors.password && (
-                  <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 disabled:opacity-50"
-              >
-                {isLoading ? 'Signing in...' : 'Sign In'}
-              </button>
-
-              <div className="text-center">
                 <button
                   type="button"
-                  onClick={handleContinueWithEmail}
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition duration-200"
                 >
-                  Continue using Email
+                  {showPassword ? <FaEyeSlash className="h-5 w-5" /> : <FaEye className="h-5 w-5" />}
                 </button>
               </div>
+              {errors.password && (
+                <p className="text-red-500 text-xs mt-1 flex items-center space-x-1">
+                  <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <span>{errors.password}</span>
+                </p>
+              )}
+            </div>
 
-              <div className="text-center">
+            <div className="flex items-center justify-between">
+              <label className="flex items-center">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                />
+                <span className="ml-2 text-sm text-gray-600">Remember me</span>
+              </label>
+              
+              <button
+                type="button"
+                className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+              >
+                Forgot password?
+              </button>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLoading}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 px-4 rounded-lg font-semibold transition duration-200 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+            >
+              {isLoading ? (
+                <div className="flex items-center justify-center space-x-2">
+                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  <span>Signing in...</span>
+                </div>
+              ) : (
+                'Sign in to your Account'
+              )}
+            </button>
+
+            {/* Switch to Registration */}
+            <div className="text-center pt-4 border-t border-gray-200">
+              <p className="text-gray-600 text-sm">
+                Don't have account?{' '}
                 <button
                   type="button"
-                  onClick={() => setCurrentView('forgot')}
-                  className="text-gray-600 hover:text-gray-800 text-sm"
+                  onClick={onSwitchToRegister}
+                  className="text-blue-600 hover:text-blue-800 font-semibold"
                 >
-                  Forgot your password?
+                  Create Account
                 </button>
-              </div>
-
-              <div className="text-center pt-4 border-t border-gray-200">
-                <p className="text-gray-600 text-sm">
-                  Don't have an account?{' '}
-                  <button
-                    type="button"
-                    onClick={() => setCurrentView('signup')}
-                    className="text-blue-600 hover:text-blue-800 font-medium"
-                  >
-                    Sign up
-                  </button>
-                </p>
-              </div>
-            </form>
-          )}
-
-          {/* Signup Form */}
-          {currentView === 'signup' && (
-            <form onSubmit={handleSignup} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  name="fullName"
-                  value={formData.fullName}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.fullName ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="Enter your full name"
-                />
-                {errors.fullName && (
-                  <p className="text-red-500 text-xs mt-1">{errors.fullName}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.email ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="Enter your email"
-                />
-                {errors.email && (
-                  <p className="text-red-500 text-xs mt-1">{errors.email}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  name="phoneNumber"
-                  value={formData.phoneNumber}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.phoneNumber ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="Enter your phone number"
-                />
-                {errors.phoneNumber && (
-                  <p className="text-red-500 text-xs mt-1">{errors.phoneNumber}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Password
-                </label>
-                <input
-                  type="password"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.password ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="Create a password (min. 8 characters)"
-                />
-                {errors.password && (
-                  <p className="text-red-500 text-xs mt-1">{errors.password}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Confirm Password
-                </label>
-                <input
-                  type="password"
-                  name="confirmPassword"
-                  value={formData.confirmPassword}
-                  onChange={handleInputChange}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.confirmPassword ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="Confirm your password"
-                />
-                {errors.confirmPassword && (
-                  <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>
-                )}
-              </div>
-
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 disabled:opacity-50"
-              >
-                {isLoading ? 'Creating Account...' : 'Create Account'}
-              </button>
-
-              <div className="text-center pt-4 border-t border-gray-200">
-                <p className="text-gray-600 text-sm">
-                  Already have an account?{' '}
-                  <button
-                    type="button"
-                    onClick={() => setCurrentView('login')}
-                    className="text-blue-600 hover:text-blue-800 font-medium"
-                  >
-                    Sign in
-                  </button>
-                </p>
-              </div>
-            </form>
-          )}
-
-          {/* Forgot Password Form */}
-          {currentView === 'forgot' && (
-            <form onSubmit={handleForgotPassword} className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email Address
-                </label>
-                <input
-                  type="email"
-                  value={resetEmail}
-                  onChange={(e) => {
-                    setResetEmail(e.target.value);
-                    if (errors.resetEmail) setErrors(prev => ({ ...prev, resetEmail: '' }));
-                  }}
-                  className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                    errors.resetEmail ? 'border-red-500' : 'border-gray-300'
-                  }`}
-                  placeholder="Enter your email address"
-                />
-                {errors.resetEmail && (
-                  <p className="text-red-500 text-xs mt-1">{errors.resetEmail}</p>
-                )}
-              </div>
-
-              <p className="text-sm text-gray-600 text-center">
-                We'll send you a link to reset your password
               </p>
+            </div>
+          </form>
 
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-200 disabled:opacity-50"
-              >
-                {isLoading ? 'Sending...' : 'Send Reset Link'}
-              </button>
-
-              <div className="text-center">
-                <button
-                  type="button"
-                  onClick={() => setCurrentView('login')}
-                  className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                >
-                  Back to Sign In
-                </button>
-              </div>
-            </form>
-          )}
-        </div>
-
-        {/* Security Notice */}
-        <div className="bg-gray-50 px-6 py-4 border-t border-gray-200">
-          <div className="flex items-center justify-center space-x-2">
-            <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-            </svg>
-            <span className="text-xs text-gray-600">Secure & encrypted login system</span>
+          {/* Security Notice */}
+          <div className="mt-6 pt-6 border-t border-gray-200">
+            <div className="flex items-center justify-center space-x-2 text-xs text-gray-600">
+              <svg className="w-4 h-4 text-green-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span>Secure & encrypted login system</span>
+            </div>
           </div>
         </div>
       </div>

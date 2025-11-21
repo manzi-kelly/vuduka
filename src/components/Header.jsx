@@ -5,7 +5,9 @@ import { FaCar, FaUser, FaSignOutAlt } from 'react-icons/fa';
 const Header = ({ 
   onMenuClick, 
   onHistoryClick, 
-  onAboutClick, 
+  onBookingClick, 
+  onServicesClick, 
+  onTestimonialsClick,
   onLoginClick, 
   hasOrderHistory, 
   currentUser, 
@@ -24,14 +26,33 @@ const Header = ({
 
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-6">
+          {/* Home - stays on current page */}
           <button className="text-gray-700 hover:text-blue-600 transition duration-200">
             Home
           </button>
-          <button onClick={onAboutClick} className="text-gray-700 hover:text-blue-600 transition duration-200">
-            About
+          
+          {/* Booking - goes to booking form */}
+          <button 
+            onClick={onBookingClick}
+            className="text-gray-700 hover:text-blue-600 transition duration-200"
+          >
+            Booking
           </button>
-          <button className="text-gray-700 hover:text-blue-600 transition duration-200">
+          
+          {/* Services - goes to services section */}
+          <button 
+            onClick={onServicesClick}
+            className="text-gray-700 hover:text-blue-600 transition duration-200"
+          >
             Services
+          </button>
+          
+          {/* Testimonials - goes to "What Our Riders Say" section */}
+          <button 
+            onClick={onTestimonialsClick}
+            className="text-gray-700 hover:text-blue-600 transition duration-200"
+          >
+            Testimonials
           </button>
           
           {hasOrderHistory && (
